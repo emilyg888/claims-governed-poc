@@ -1,0 +1,15 @@
+datasets:
+  raw_snapshot_claims:
+    layer: RAW
+    table: RAW.CLAIMS_SNAPSHOT_NIGHTLY
+    key_columns: [claim_id]
+  raw_events_claims:
+    layer: RAW
+    table: RAW.CLAIMS_EVENTS_NIGHTLY
+    key_columns: [claim_id, event_ts, event_type]
+  int_snapshot_claims:
+    layer: INT
+    table: INT.CLAIMS_SNAPSHOT
+  gold_claims:
+    layer: GOLD
+    table: GOLD.CLAIMS_MART

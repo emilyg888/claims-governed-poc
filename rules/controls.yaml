@@ -1,0 +1,59 @@
+controls:
+  - id: C1_SCHEMA
+    description: Required schema headers exist for both files.
+    severity: BLOCK
+    type: precheck
+
+  - id: C2_DQ_NON_NEGATIVE
+    description: Snapshot monetary values are non-negative.
+    severity: BLOCK
+    type: sql
+    query: |
+      SELECT COUNT(*) AS fail_count
+      FROM RAW.CLAIMS_SNAPSHOT_NIGHTLY
+      WHERE batch_date = %(batch_date)s::DATE
+        AND (
+          claim_amount_incurred < 0
+          OR paid_amount_to_date < 0
+          OR reserve_amount < 0
+        )
+    threshold: 0
+
+  - id: C3_RECON_ROWCOUNT
+    description: Loaded row count should match discovered files total.
+    severity: BLOCK
+    type: precheck
+
+  - id: C4_CLASSIFICATION_DOMAIN
+    description: pii_class must be in approved taxonomy.
+    severity: BLOCK
+    type: sql
+    query: |
+      SELECT COUNT(*) AS fail_count
+      FROM RAW.CLAIMS_SNAPSHOT_NIGHTLY
+      WHERE batch_date = %(batch_date)s::DATE
+        AND pii_class NOT IN ('NONE', 'LOW', 'MEDIUM', 'HIGH')
+    threshold: 0
+
+  - id: C5_EVENT_DOMAIN
+    description: event_type must be in approved taxonomy.
+    severity: WARN
+    type: sql
+    query: |
+      SELECT COUNT(*) AS fail_count
+      FROM RAW.CLAIMS_EVENTS_NIGHTLY
+      WHERE batch_date = %(batch_date)s::DATE
+        AND event_type NOT IN (
+          'CREATED', 'UPDATED', 'STATUS_CHANGE', 'PAYMENT', 'NOTE'
+        )
+    threshold: 0
+
+  - id: C6_RUN_AUDIT
+    description: Ensure run audit row exists for the run.
+    severity: BLOCK
+    type: precheck
+
+  - id: C7_PROMOTION_GATE
+    description: Promotion blocked if any BLOCK control fails.
+    severity: BLOCK
+    type: gate

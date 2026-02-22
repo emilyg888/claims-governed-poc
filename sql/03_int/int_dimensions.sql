@@ -1,0 +1,20 @@
+USE DATABASE CLAIMS_POC;
+USE SCHEMA INT;
+
+CREATE TABLE IF NOT EXISTS DIM_POLICY (
+  policy_id STRING,
+  first_seen_at TIMESTAMP_NTZ,
+  PRIMARY KEY (policy_id)
+);
+
+CREATE TABLE IF NOT EXISTS DIM_CUSTOMER (
+  customer_id STRING,
+  first_seen_at TIMESTAMP_NTZ,
+  PRIMARY KEY (customer_id)
+);
+
+CREATE TABLE IF NOT EXISTS DIM_ACTOR (
+  actor STRING,
+  first_seen_at TIMESTAMP_NTZ,
+  PRIMARY KEY (actor)
+);

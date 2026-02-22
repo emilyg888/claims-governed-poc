@@ -4,6 +4,7 @@ from __future__ import annotations
 
 
 def _table_columns(conn, schema_name: str, table_name: str) -> set[str]:
+    """Return uppercase column names for an existing table."""
     sql = """
       SELECT UPPER(column_name)
       FROM INFORMATION_SCHEMA.COLUMNS
@@ -19,13 +20,16 @@ def _table_columns(conn, schema_name: str, table_name: str) -> set[str]:
 def snapshot_expressions(conn) -> dict[str, str]:
     """Return SQL expressions for logical snapshot fields."""
     cols = _table_columns(conn, "RAW", "CLAIMS_SNAPSHOT_NIGHTLY")
+    # Timestamp column name changed across schema versions.
     if "LOADED_AT" in cols:
         loaded_at_expr = "LOADED_AT"
     elif "LOAD_TS" in cols:
         loaded_at_expr = "LOAD_TS"
     else:
+        # Keep pipeline runnable even if metadata column is absent.
         loaded_at_expr = "CURRENT_TIMESTAMP()"
     if "BATCH_DATE" in cols:
+        # New schema: use direct column names.
         return {
             "batch_date": "BATCH_DATE",
             "claim_id": "CLAIM_ID",
@@ -40,6 +44,7 @@ def snapshot_expressions(conn) -> dict[str, str]:
             "pii_class": "PII_CLASS",
             "loaded_at": loaded_at_expr,
         }
+    # Legacy schema: map logical fields to positional COL_* columns.
     return {
         "batch_date": "TRY_TO_DATE(COL_1)",
         "claim_id": "COL_3",
@@ -60,5 +65,7 @@ def events_expressions(conn) -> dict[str, str]:
     """Return SQL expressions for logical events fields used by controls."""
     cols = _table_columns(conn, "RAW", "CLAIMS_EVENTS_NIGHTLY")
     if "BATCH_DATE" in cols:
+        # New schema with explicit field names.
         return {"batch_date": "BATCH_DATE", "event_type": "EVENT_TYPE"}
+    # Legacy schema.
     return {"batch_date": "TRY_TO_DATE(COL_1)", "event_type": "COL_4"}

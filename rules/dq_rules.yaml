@@ -1,0 +1,19 @@
+dq_library:
+- rule_id: DQ001
+  description: Incurred must equal paid + reserve within tolerance
+  sql: "\n                SELECT COUNT(*) AS fail_count\n                FROM RAW.CLAIMS_SNAPSHOT_NIGHTLY\n\
+    \                WHERE ABS(claim_amount_incurred - \n                        \
+    \ (paid_amount_to_date + reserve_amount)) > 0.01;\n            "
+  severity: WARN
+- rule_id: DQ002
+  description: Close date must be populated if status is CLOSED
+  sql: "\n                SELECT COUNT(*) AS fail_count\n                FROM RAW.CLAIMS_SNAPSHOT_NIGHTLY\n\
+    \                WHERE claim_status = 'CLOSED'\n                  AND (close_date\
+    \ IS NULL OR close_date = '');\n            "
+  severity: BLOCK
+- rule_id: DQ003
+  description: RTW date must exist if RTW flag is TRUE
+  sql: "\n                SELECT COUNT(*) AS fail_count\n                FROM RAW.CLAIMS_SNAPSHOT_NIGHTLY\n\
+    \                WHERE r_tw_flag = TRUE\n                  AND (r_tw_date IS NULL\
+    \ OR r_tw_date = '');\n            "
+  severity: WARN

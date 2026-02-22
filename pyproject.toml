@@ -1,0 +1,20 @@
+[project]
+name = "claims-governed-poc"
+version = "0.1.0"
+description = "Governed Snowflake claims ingestion pipeline PoC"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+  "snowflake-connector-python>=3.12.0",
+  "PyYAML>=6.0.2",
+  "jsonschema>=4.23.0",
+  "python-dateutil>=2.9.0.post0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

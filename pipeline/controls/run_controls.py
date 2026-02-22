@@ -34,8 +34,12 @@ def load_controls(path: str = "rules/controls.yaml") -> dict[str, Any]:
 def run_sql_controls(conn, run_id: str, batch_date: str) -> list[ControlResult]:
     """Execute SQL controls from controls.yaml for a specific batch date."""
     config = load_controls()
+    # Map logical field names to real SQL expressions for whichever RAW schema
+    # is present (named columns or legacy COL_* columns).
     snapshot_cols = snapshot_expressions(conn)
     event_cols = events_expressions(conn)
+    # Replace selected YAML queries with dynamic SQL so controls remain stable
+    # across schema variants without manual YAML edits.
     query_overrides = {
         "C2_DQ_NON_NEGATIVE": f"""
           SELECT COUNT(*) AS fail_count
@@ -70,9 +74,11 @@ def run_sql_controls(conn, run_id: str, batch_date: str) -> list[ControlResult]:
 
         query = query_overrides.get(control["id"], control["query"])
         threshold = float(control.get("threshold", 0))
+        # fail_count is the number of rows violating the rule.
         fail_count = int(
             execute_scalar(conn, query, {"batch_date": batch_date}) or 0
         )
+        # Control passes only when failure count is at or below threshold.
         status = "PASS" if fail_count <= threshold else "FAIL"
         result = ControlResult(
             control_id=control["id"],

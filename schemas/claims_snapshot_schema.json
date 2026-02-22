@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "claims_snapshot_schema",
+  "type": "object",
+  "required": [
+    "batch_date",
+    "claim_id",
+    "policy_id",
+    "customer_id",
+    "claim_amount_incurred",
+    "paid_amount_to_date",
+    "reserve_amount",
+    "loss_date",
+    "report_date",
+    "claim_status",
+    "pii_class"
+  ],
+  "properties": {
+    "batch_date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "claim_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "customer_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_amount_incurred": {
+      "type": "number"
+    },
+    "paid_amount_to_date": {
+      "type": "number"
+    },
+    "reserve_amount": {
+      "type": "number"
+    },
+    "loss_date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "report_date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "claim_status": {
+      "type": "string",
+      "enum": ["OPEN", "PENDING", "PAID", "DENIED", "CLOSED", "REOPENED"]
+    },
+    "pii_class": {
+      "type": "string",
+      "enum": ["NONE", "LOW", "MEDIUM", "HIGH"]
+    }
+  },
+  "additionalProperties": true
+}

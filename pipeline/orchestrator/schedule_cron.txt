@@ -1,0 +1,2 @@
+# Run nightly at 02:15 local time
+15 2 * * * cd /Users/emilygao/Projects/snowflake/claims-governed-poc && ~/envs/snowpark/bin/python -m pipeline.orchestrator.nightly_job --batch-date "$(date +\%F)"

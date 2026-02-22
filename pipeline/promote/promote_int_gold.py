@@ -30,6 +30,7 @@ def ensure_int_snapshot_table(conn) -> None:
 
 def promote_snapshot_to_int(conn, batch_date: str) -> int:
     """Merge snapshot records from RAW into INT snapshot table."""
+    # Safety net for first-time environments.
     ensure_int_snapshot_table(conn)
     cols = snapshot_expressions(conn)
     merge_sql = f"""
@@ -65,6 +66,9 @@ def promote_snapshot_to_int(conn, batch_date: str) -> int:
           FROM RAW.CLAIMS_SNAPSHOT_NIGHTLY
           WHERE {cols["batch_date"]} = %(batch_date)s::DATE
         ) AS src
+        -- Deduplicate source rows so one claim_id maps to one merge row.
+        -- This avoids Snowflake's "duplicate row detected during DML action"
+        -- when the same claim appears multiple times in RAW for a batch.
         QUALIFY ROW_NUMBER() OVER (
           PARTITION BY src.claim_id
           ORDER BY src.loaded_at DESC NULLS LAST

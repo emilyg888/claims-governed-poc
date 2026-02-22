@@ -1,0 +1,15 @@
+classes:
+  NONE:
+    description: No direct or sensitive personal data
+  LOW:
+    description: Business identifiers with low re-identification risk
+  MEDIUM:
+    description: Personal data requiring restricted access
+  HIGH:
+    description: Sensitive personal/health-financial attributes
+
+column_rules:
+  customer_id: MEDIUM
+  policy_id: LOW
+  provider_id: LOW
+  claim_id: LOW
