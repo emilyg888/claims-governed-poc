@@ -9,14 +9,18 @@ This repository contains a governed Snowflake claims ingestion PoC.
 
 ## Runtime
 - Python: 3.11
-- Virtual env: `~/envs/snowpark/bin/python`
+- Virtual env: `.venv/bin/python`
 - Data plane: Snowflake (`snowflake-connector-python`)
 
 ## Run
 ```bash
-~/envs/snowpark/bin/python pipeline/nightly_job.py --batch-date 2026-02-21
+.venv/bin/python -m pipeline.orchestrator.nightly_job --batch-date 2026-02-21
 ```
 
 ## Notes
 - Credentials are read from environment variables only.
 - Local logs/reports are written under `artifacts/`.
+
+## Learning Guides
+- Starter guide: `docs/starter_guide.md`
+- Full lab instructions: `LAB_INSTRUCTIONS.md`
