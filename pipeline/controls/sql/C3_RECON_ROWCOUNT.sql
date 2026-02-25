@@ -1,0 +1,2 @@
+-- C3 is implemented as a Python precheck in pipeline/controls/run_controls.py.
+-- This file is intentionally version-controlled as the canonical control spec placeholder.

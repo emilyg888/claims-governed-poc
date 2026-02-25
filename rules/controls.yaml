@@ -1,59 +1,70 @@
 controls:
   - id: C1_SCHEMA
+    enabled: true
+    blocking: true
     description: Required schema headers exist for both files.
     severity: BLOCK
     type: precheck
+    params:
+      snapshot_schema: schemas/claims_snapshot_schema.json
+      events_schema: schemas/claims_events_schema.json
 
   - id: C2_DQ_NON_NEGATIVE
+    enabled: true
+    blocking: true
     description: Snapshot monetary values are non-negative.
     severity: BLOCK
     type: sql
-    query: |
-      SELECT COUNT(*) AS fail_count
-      FROM RAW.CLAIMS_SNAPSHOT_NIGHTLY
-      WHERE batch_date = %(batch_date)s::DATE
-        AND (
-          claim_amount_incurred < 0
-          OR paid_amount_to_date < 0
-          OR reserve_amount < 0
-        )
+    sql_path: C2_DQ_NON_NEGATIVE.sql
     threshold: 0
 
   - id: C3_RECON_ROWCOUNT
+    enabled: true
+    blocking: true
     description: Loaded row count should match discovered files total.
     severity: BLOCK
     type: precheck
 
   - id: C4_CLASSIFICATION_DOMAIN
+    enabled: true
+    blocking: true
     description: pii_class must be in approved taxonomy.
     severity: BLOCK
     type: sql
-    query: |
-      SELECT COUNT(*) AS fail_count
-      FROM RAW.CLAIMS_SNAPSHOT_NIGHTLY
-      WHERE batch_date = %(batch_date)s::DATE
-        AND pii_class NOT IN ('NONE', 'LOW', 'MEDIUM', 'HIGH')
+    sql_path: C4_CLASSIFICATION_DOMAIN.sql
     threshold: 0
 
   - id: C5_EVENT_DOMAIN
+    enabled: true
+    blocking: false
     description: event_type must be in approved taxonomy.
     severity: WARN
     type: sql
-    query: |
-      SELECT COUNT(*) AS fail_count
-      FROM RAW.CLAIMS_EVENTS_NIGHTLY
-      WHERE batch_date = %(batch_date)s::DATE
-        AND event_type NOT IN (
-          'CREATED', 'UPDATED', 'STATUS_CHANGE', 'PAYMENT', 'NOTE'
-        )
+    sql_path: C5_EVENT_DOMAIN.sql
     threshold: 0
 
   - id: C6_RUN_AUDIT
+    enabled: true
+    blocking: true
     description: Ensure run audit row exists for the run.
     severity: BLOCK
     type: precheck
+    params:
+      table: CTRL.RUN_AUDIT
+      min_rows: 1
+
+  - id: C8_DUPLICATE_CLAIM_ID
+    enabled: true
+    blocking: true
+    description: Snapshot claim_id must be unique within batch_date.
+    severity: BLOCK
+    type: sql
+    sql_path: C8_DUPLICATE_CLAIM_ID.sql
+    threshold: 0
 
   - id: C7_PROMOTION_GATE
+    enabled: true
+    blocking: true
     description: Promotion blocked if any BLOCK control fails.
     severity: BLOCK
     type: gate

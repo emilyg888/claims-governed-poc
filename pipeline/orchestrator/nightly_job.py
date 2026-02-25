@@ -10,10 +10,8 @@ from pipeline.common.utils import parse_batch_date
 from pipeline.ingest.load_to_snowflake import (
     copy_file_to_raw,
     discover_files,
-    validate_headers,
 )
-from pipeline.ingest.schema_validate import validate_csv_against_schema
-from pipeline.controls.run_controls import promotion_gate, run_sql_controls
+from pipeline.controls.run_controls import run_controls
 from pipeline.promote.promote_int_gold import promote_snapshot_to_int
 
 
@@ -38,58 +36,6 @@ def main() -> int:
 
     # Locate both required nightly files for this batch date.
     files = discover_files(batch_date)
-
-    # Fast fail before loading if required headers are missing.
-    validate_headers(
-        files["snapshot"],
-        [
-            "batch_date",
-            "claim_id",
-            "policy_id",
-            "customer_id",
-            "claim_amount_incurred",
-            "paid_amount_to_date",
-            "reserve_amount",
-            "loss_date",
-            "report_date",
-            "claim_status",
-            "pii_class",
-        ],
-    )
-    validate_headers(
-        files["events"],
-        [
-            "batch_date",
-            "claim_id",
-            "event_ts",
-            "event_type",
-            "old_status",
-            "new_status",
-            "amount_delta",
-            "currency",
-            "source_system",
-            "note",
-        ],
-    )
-    snapshot_validation = validate_csv_against_schema(
-        files["snapshot"],
-        "schemas/claims_snapshot_schema.json",
-    )
-    if not snapshot_validation.valid:
-        raise ValueError(
-            "Snapshot schema validation failed: "
-            + "; ".join(snapshot_validation.errors[:5])
-        )
-
-    events_validation = validate_csv_against_schema(
-        files["events"],
-        "schemas/claims_events_schema.json",
-    )
-    if not events_validation.valid:
-        raise ValueError(
-            "Events schema validation failed: "
-            + "; ".join(events_validation.errors[:5])
-        )
 
     with get_connection() as conn:
         # Mark run as started in audit table.
@@ -122,7 +68,7 @@ def main() -> int:
                 },
             )
 
-        copy_file_to_raw(
+        snapshot_loaded = copy_file_to_raw(
             conn,
             files["snapshot"],
             args.stage,
@@ -130,7 +76,7 @@ def main() -> int:
             args.file_format,
             "snapshot",
         )
-        copy_file_to_raw(
+        events_loaded = copy_file_to_raw(
             conn,
             files["events"],
             args.stage,
@@ -139,9 +85,15 @@ def main() -> int:
             "events",
         )
 
-        # Execute SQL controls and stop promotion on blocking failures.
-        results = run_sql_controls(conn, run_id, batch_date)
-        if not promotion_gate(results):
+        # Execute metadata-driven controls C1..C7 and block promotion on failures.
+        summary = run_controls(
+            conn,
+            run_id,
+            batch_date,
+            files=files,
+            loaded_counts={"snapshot": snapshot_loaded, "events": events_loaded},
+        )
+        if summary.blocking_failures > 0:
             with conn.cursor() as cur:
                 cur.execute(
                     """

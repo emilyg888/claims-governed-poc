@@ -15,11 +15,18 @@ CREATE OR REPLACE TABLE RUN_AUDIT (
 
 CREATE OR REPLACE TABLE CONTROL_RESULT (
   run_id STRING NOT NULL,
+  batch_date DATE,
   control_id STRING NOT NULL,
   control_name STRING,
   status STRING,
+  total_count NUMBER,
   fail_count NUMBER,
+  variance FLOAT,
   severity STRING,
+  blocking_flag BOOLEAN,
+  details STRING,
+  executed_sql_hash STRING,
+  executed_at TIMESTAMP_NTZ,
   executed_ts TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
 );
 

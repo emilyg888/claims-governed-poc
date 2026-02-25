@@ -24,3 +24,15 @@ This repository contains a governed Snowflake claims ingestion PoC.
 ## Learning Guides
 - Starter guide: `docs/starter_guide.md`
 - Full lab instructions: `LAB_INSTRUCTIONS.md`
+
+## Controls Dashboard
+Install dashboard extras:
+```bash
+.venv/bin/pip install ".[dashboard]"
+```
+
+Run Streamlit app:
+```bash
+source config/snowflake_env.sh
+.venv/bin/python -m streamlit run streamlit/app.py
+```
