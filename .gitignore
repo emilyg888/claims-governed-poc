@@ -9,10 +9,12 @@ __pycache__/
 .coverage
 htmlcov/
 .DS_Store
+build/
 .env
 .env.*
 !.env.example
 config/snowflake_env.sh
+notes_ai/
 
 artifacts/run_logs/*
 artifacts/dq_reports/*

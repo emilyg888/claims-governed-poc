@@ -1,4 +1,4 @@
-PYTHON ?= ~/envs/snowpark/bin/python
+PYTHON ?= .venv/bin/python
 
 .PHONY: test lint run
 
