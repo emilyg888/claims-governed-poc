@@ -123,6 +123,8 @@ render_run_summary(
 )
 st.divider()
 render_control_results_table(filtered)
+st.divider()
+render_failure_details_panel(frame)
 
 trend_data = _results_last_n(7).merge(metadata, on="CONTROL_ID", how="left")
 if "REGISTER_BLOCKING" in trend_data.columns:
@@ -133,5 +135,3 @@ trend_data["STATUS"] = trend_data["STATUS"].astype(str).str.upper()
 
 st.divider()
 render_trend_section(trend_data)
-st.divider()
-render_failure_details_panel(frame)

@@ -65,7 +65,7 @@ def render_control_results_table(frame: pd.DataFrame) -> None:
 
 
 def render_trend_section(frame: pd.DataFrame) -> None:
-    """Render control failure and variance trends."""
+    """Render control failure trends."""
     st.subheader("Control Trend (Last 7 Batches)")
     if frame.empty:
         st.info("Trend data is empty.")
@@ -95,15 +95,6 @@ def render_trend_section(frame: pd.DataFrame) -> None:
     )
     st.caption("Blocking failures over time")
     st.line_chart(blocking.set_index("BATCH_DATE")["BLOCKING_FAIL_COUNT"])
-
-    if "VARIANCE" in frame.columns and frame["VARIANCE"].notna().any():
-        variance = (
-            frame.groupby("BATCH_DATE", as_index=False)["VARIANCE"]
-            .sum(min_count=1)
-            .sort_values("BATCH_DATE")
-        )
-        st.caption("Variance trend")
-        st.line_chart(variance.set_index("BATCH_DATE")["VARIANCE"])
 
 
 def render_failure_details_panel(frame: pd.DataFrame) -> None:
